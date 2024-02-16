@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model Workout {
+  id              Int           @id @default(autoincrement())
+  title           String
+  tagId           Int?
+  photo           String?
+  defaultSetCount Int?
+  defaultRepCount Int?
+  deleted         Boolean       @default(false)
+  Tag             Tag?          @relation(fields: [tagId], references: [id])
+  Exercise        Exercise[]
+  PlanWorkout     PlanWorkout[]
+}
+
+model Tag {
+  id      Int       @id @default(autoincrement())
+  title   String
+  Workout Workout[]
+}
+
+model User {
+  id       Int        @id @default(autoincrement())
+  name     String
+  Exercise Exercise[]
+}
+
+model Plan {
+  id          Int           @id @default(autoincrement())
+  userId      Int?
+  title       String
+  PlanWorkout PlanWorkout[]
+  Training    Training[]
+}
+
+model PlanWorkout {
+  id        Int     @id @default(autoincrement())
+  order     Int
+  userId    Int
+  workoutId Int
+  planId    Int
+  Workout   Workout @relation(fields: [workoutId], references: [id])
+  Plan      Plan    @relation(fields: [planId], references: [id])
+}
+
+model Training {
+  id       Int        @id @default(autoincrement())
+  date     DateTime   @default(now())
+  userId   Int
+  planId   Int
+  Plan     Plan       @relation(fields: [planId], references: [id])
+  Exercise Exercise[]
+}
+
+model Exercise {
+  id              Int      @id @default(autoincrement())
+  defaultWeight   Int?
+  order           Int
+  workoutId       Int
+  userId          Int
+  trainingId      Int
+  done            Boolean  @default(false)
+  date            DateTime @default(now())
+  defaultSetCount Int?
+  defaultRepCount Int?
+  Workout         Workout  @relation(fields: [workoutId], references: [id])
+  User            User     @relation(fields: [userId], references: [id])
+  Training        Training @relation(fields: [trainingId], references: [id])
+  Reps            Reps[]
+}
+
+model Reps {
+  id         Int      @id @default(autoincrement())
+  order      Int
+  count      Int?
+  weight     Int?
+  exerciseId Int
+  Exercise   Exercise @relation(fields: [exerciseId], references: [id])
+}
